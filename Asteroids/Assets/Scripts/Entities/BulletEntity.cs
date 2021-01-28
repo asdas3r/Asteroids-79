@@ -2,6 +2,8 @@
 
 public class BulletEntity : BaseGameEntity
 {
+    public float speed = 45f;
+
     private float timer = 1.5f;
 
     protected override void OnStart()
@@ -10,7 +12,7 @@ public class BulletEntity : BaseGameEntity
 
         gamePoints = 5;
 
-        SetupMovement(transform.up, 45);
+        SetupMovement(transform.up, speed);
     }
 
     protected override void OnUpdate()

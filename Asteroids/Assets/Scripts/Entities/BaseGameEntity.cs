@@ -6,6 +6,8 @@ public class BaseGameEntity : MonoBehaviour
     protected int healthPoints = 1;
     protected int gamePoints = 0;
 
+    public GameObject deathPrefab;
+
     protected bool isAutoMove { get; private set; } = false;
     public Vector3 movementDirection { get; private set; }
     public float movementSpeed { get; private set; }
@@ -14,7 +16,6 @@ public class BaseGameEntity : MonoBehaviour
 
     protected GlobalObjectsManager objectsManager { get; private set; }
     protected GameManager gameManager { get; private set; }
-    protected ScoreManager scoresManager { get; private set; }
     protected AudioManager audioManager { get; private set; }
 
     #region Standart methods
@@ -23,7 +24,6 @@ public class BaseGameEntity : MonoBehaviour
     {
         gameManager = GameManager.singleton;
         objectsManager = GlobalObjectsManager.singleton;
-        scoresManager = ScoreManager.singleton;
         audioManager = AudioManager.singleton;
 
         entityRadius = (GetComponentInChildren<SpriteRenderer>().bounds.size.y / 2) * 0.9f;
@@ -112,15 +112,19 @@ public class BaseGameEntity : MonoBehaviour
 
     protected virtual void Death()
     {
-        var explosion = objectsManager.explosionPrefab;
-        if (explosion != null)
+        if (deathPrefab == null)
         {
-            Instantiate(explosion, transform.position, transform.rotation);
+            deathPrefab = objectsManager.explosionPrefab;
+        }
+
+        if (deathPrefab != null)
+        {
+            Instantiate(deathPrefab, transform.position, transform.rotation);
         }
 
         if (GetLastDamageCollision().gameObject.CompareTag("Player"))
         {
-            scoresManager.UpdatePlayerScore(gamePoints);
+            gameManager.UpdatePlayerScore(gamePoints);
         }
 
         Destroy(gameObject);

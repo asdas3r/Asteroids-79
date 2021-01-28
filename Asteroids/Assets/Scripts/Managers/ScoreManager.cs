@@ -1,12 +1,11 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager singleton;
 
-    public TMPro.TMP_Text gameScoreText;
-    public TMPro.TMP_Text highScoreText;
-    public long gameScore;
+    public List<Highscore> highscores { get; private set; }
 
     void Awake()
     {
@@ -21,23 +20,52 @@ public class ScoreManager : MonoBehaviour
 
     void Start()
     {
-
+        LoadScores();
     }
 
-    public void UpdatePlayerScore(int points)
+    public void TryAddScore(Highscore highscore)
     {
-        gameScore += points;
-        gameScoreText.text = gameScore.ToString();
+        var score = highscore.Score;
+
+        if (IsTopTen(score))
+        {
+            foreach (var hs in highscores)
+            {
+                if (hs.Score <= score)
+                {
+                    hs.Name = highscore.Name;
+                    hs.Score = highscore.Score;
+                }
+            }
+
+            SaveScores();
+        }
     }
 
-    public void ResetPlayerScore()
+    private void SaveScores()
     {
-        gameScore = 0;
-        gameScoreText.text = "00";
+        HighscoresHelper.SaveScores(highscores);
     }
 
-    void Update()
+    private void LoadScores()
     {
-        
+        highscores = HighscoresHelper.LoadHighscores();
+
+        if (highscores == null)
+            highscores = HighscoresHelper.LoadDefaultHighscores();
+    }
+
+    public bool IsTopTen(float score)
+    {
+        if (highscores == null)
+            return false;
+
+        foreach (var highscore in highscores)
+        {
+            if (highscore.Score <= score)
+                return true;
+        }
+
+        return false;
     }
 }

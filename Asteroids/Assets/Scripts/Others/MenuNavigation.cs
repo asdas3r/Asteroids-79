@@ -42,6 +42,11 @@ public class MenuNavigation : MonoBehaviour
         highscores.blocksRaycasts = true;
     }
 
+    public void ExitGame()
+    {
+        Application.Quit();
+    }
+
     public void ShowMainMenu()
     {
         highscores.gameObject.SetActive(true);

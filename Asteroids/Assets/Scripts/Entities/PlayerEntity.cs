@@ -1,9 +1,7 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PlayerEntity : ShootingEntity
 {
-    public GameObject playerDeathPrefab;
     public GameObject movers;
 
     private float spawnProtectionTime = 1f;
@@ -42,17 +40,7 @@ public class PlayerEntity : ShootingEntity
 
     protected override void Death()
     {
-        if (playerDeathPrefab != null)
-        {
-            Instantiate(playerDeathPrefab, transform.position, transform.rotation);
-        }
-
-        if (GetLastDamageCollision().gameObject.CompareTag("Player"))
-        {
-            scoresManager.UpdatePlayerScore(-100);
-        }
-
-        Destroy(gameObject);
+        base.Death();
 
         audioManager.Play("player_death");
 

@@ -3,7 +3,6 @@
 public class ShootingEntity : BaseGameEntity
 {
     public float bulletOffset = 0.5f;
-    public float bulletSpeed = 20f;
 
     public void Shoot()
     {

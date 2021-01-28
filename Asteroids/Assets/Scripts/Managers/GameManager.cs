@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -8,16 +9,23 @@ public class GameManager : MonoBehaviour
     public float yBorder { get; private set; }
     public float xBorder { get; private set; }
     public int currentLevelNumber { get; private set; }
+    public long gameScore { get; private set; }
+    public long highScore { get; private set; }
     public int playerLives { get; private set; }
+
+    public Transform livesPanel;
+    public GameObject healthPrefab;
+    public TMP_Text statusText;
+    public TMP_Text gameScoreText;
+    public TMP_Text highScoreText;
 
     private Camera _mainCamera;
     private GlobalObjectsManager _objectsManager;
-    private ScoreManager _scoreManager;
-    private bool _isLevelStarted;
+    private bool _isGameStarted;
     private float _pauseCounter;
-
     private float _respawnTimer;
-    private bool _waitingForRespawn;
+    private float _endGameTimer;
+    private PlayerStatus _playerStatus;
     private PlayerEntity _playerEntity;
 
     void Awake()
@@ -35,12 +43,14 @@ public class GameManager : MonoBehaviour
     {
         _mainCamera = Camera.main;
         _objectsManager = GlobalObjectsManager.singleton;
-        _scoreManager = ScoreManager.singleton;
 
         currentLevelNumber = 0;
-        _isLevelStarted = false;
-        _pauseCounter = 0;
+        _isGameStarted = false;
+        _pauseCounter = 0f;
+        _respawnTimer = 0f;
+        _endGameTimer = 0f;
         playerLives = 3;
+        statusText.gameObject.SetActive(false);
 
         UpdateGameBorders();
     }
@@ -49,7 +59,7 @@ public class GameManager : MonoBehaviour
     {
         UpdateGameBorders();
 
-        if (currentLevelNumber > 0 && _isLevelStarted)
+        if (_isGameStarted)
         {
             if (IsLevelCompleted())
             {
@@ -59,16 +69,35 @@ public class GameManager : MonoBehaviour
                 {
                     _pauseCounter = 0;
                     StartLevel(++currentLevelNumber);
+                    if (_playerStatus == PlayerStatus.NotSpawned)
+                    {
+                        statusText.text = "";
+                        SpawnPlayer();
+                    }
                 }
             }
-            else if (_waitingForRespawn)
+
+            if (_playerStatus == PlayerStatus.WaitingForSpawn)
             {
                 _respawnTimer += Time.deltaTime;
                 if (_respawnTimer > 2.5f)
                 {
-                    _respawnTimer = 0;
-                    _waitingForRespawn = false;
-                    SpawnPlayer();
+                    statusText.text = "Press any key to respawn";
+
+                    if (Input.anyKeyDown)
+                    {
+                        SpawnPlayer();
+                        _respawnTimer = 0;
+                        statusText.text = "";
+                    }
+                }
+            }
+            else if (_playerStatus == PlayerStatus.Dead)
+            {
+                _endGameTimer += Time.deltaTime;
+                if (_endGameTimer > 3f)
+                {
+                    ShowGameOverScreen();
                 }
             }
         }
@@ -79,34 +108,40 @@ public class GameManager : MonoBehaviour
         GameObject playerGO = Instantiate(_objectsManager.playerPrebaf);
         _playerEntity = playerGO.GetComponent<PlayerEntity>();
         _playerEntity.StartedOnLevel();
+        _playerStatus = PlayerStatus.Alive;
     }
 
     public void PlayerDied()
     {
         playerLives--;
+        UpdateHealthBar();
 
         if (playerLives == 0)
         {
-            EndGame(false);
+            _playerStatus = PlayerStatus.Dead;
+            statusText.text = "Game over";
         }
         else
         {
-            _waitingForRespawn = true;
+            _playerStatus = PlayerStatus.WaitingForSpawn;
         }
     }
 
-    private void EndGame(bool destroyObjects)
+    private void EndGame()
     {
-        _isLevelStarted = false;
-
-        if (!destroyObjects)
-            return;
+        _isGameStarted = false;
 
         var activeObjects = GetAllActiveGameObjects();
         foreach (var obj in activeObjects)
         {
             Destroy(obj);
         }
+    }
+
+    private void ShowGameOverScreen()
+    {
+        EndGame();
+        statusText.text = "";
     }
 
     private void UpdateGameBorders()
@@ -118,12 +153,16 @@ public class GameManager : MonoBehaviour
 
     public void StartNewGame()
     {
-        EndGame(true);
+        EndGame();
 
-        _scoreManager.ResetPlayerScore();
-        currentLevelNumber = 1;
-        StartLevel(currentLevelNumber);
-        SpawnPlayer();
+        ResetPlayerScore();
+        _isGameStarted = true;
+        _playerStatus = PlayerStatus.NotSpawned;
+        currentLevelNumber = 0;
+        playerLives = 3;
+        UpdateHealthBar();
+        statusText.gameObject.SetActive(true);
+        statusText.text = "Ready player 1";
     }
 
     public void MenuScreen()
@@ -132,6 +171,35 @@ public class GameManager : MonoBehaviour
             _objectsManager = GlobalObjectsManager.singleton;
 
         StartLevel(0);
+    }
+
+    public void UpdatePlayerScore(int points)
+    {
+        gameScore += points;
+        gameScoreText.text = gameScore.ToString();
+    }
+
+    public void ResetPlayerScore()
+    {
+        gameScore = 0;
+        gameScoreText.text = "00";
+    }
+
+    private void UpdateHealthBar()
+    {
+        var childCount = livesPanel.childCount;
+
+        for (int i = 0; i < childCount; ++i)
+        {
+            var childTransform = livesPanel.GetChild(i);
+            Destroy(childTransform.gameObject);
+        }
+
+        for (int i = 0; i < playerLives; i++)
+        {
+            var healthGO = Instantiate(healthPrefab);
+            healthGO.transform.SetParent(livesPanel, false);
+        }
     }
 
     public void StartLevel(int levelNumber)
@@ -145,7 +213,7 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < asteroidsAmount; i++)
         {
-            int number = Random.Range(0, _objectsManager.asteroidsPrefabs.Length - 1);
+            int number = UnityEngine.Random.Range(0, _objectsManager.asteroidsPrefabs.Length - 1);
             GameObject childAsteroidGO = Instantiate(_objectsManager.asteroidsPrefabs[number]);
             var asteroidEntity = childAsteroidGO.GetComponent<AsteroidEntity>();
             asteroidEntity.levelNumber = levelNumber;
@@ -154,8 +222,6 @@ public class GameManager : MonoBehaviour
             asteroidEntity.asteroidForm = rules.form;
             asteroidEntity.transform.position = new Vector3(Random.Range(-xBorder, xBorder), Random.Range(-yBorder, yBorder), 0);*/
         }
-
-        _isLevelStarted = true;
     }
 
     private GameObject[] GetAllActiveGameObjects()
