@@ -25,16 +25,16 @@ public static class HighscoresHelper
     {
         List<Highscore> tempHighscores = new List<Highscore>()
         {
-            new Highscore {Name = "AAA", Score = 1000},
-            new Highscore {Name = "AAA", Score = 2000},
-            new Highscore {Name = "AAA", Score = 3000},
-            new Highscore {Name = "AAA", Score = 4000},
-            new Highscore {Name = "AAA", Score = 5000},
-            new Highscore {Name = "AAA", Score = 6000},
-            new Highscore {Name = "AAA", Score = 7000},
-            new Highscore {Name = "AAA", Score = 8000},
-            new Highscore {Name = "AAA", Score = 9000},
-            new Highscore {Name = "AAA", Score = 10000}
+            new Highscore("AAA", 1000),
+            new Highscore("AAA", 2000),
+            new Highscore("AAA", 3000),
+            new Highscore("AAA", 4000),
+            new Highscore("AAA", 5000),
+            new Highscore("AAA", 6000),
+            new Highscore("AAA", 7000),
+            new Highscore("AAA", 8000),
+            new Highscore("AAA", 9000),
+            new Highscore("AAA", 10000)
         };
 
         return tempHighscores.OrderByDescending(e => e.Score).ToList();

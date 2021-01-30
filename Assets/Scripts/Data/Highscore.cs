@@ -4,5 +4,11 @@
 public class Highscore
 {
     public string Name { get; set; }
-    public float Score { get; set; }
+    public long Score { get; set; }
+
+    public Highscore(string name, long score)
+    {
+        Name = name;
+        Score = score;
+    }
 }

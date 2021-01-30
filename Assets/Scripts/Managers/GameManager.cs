@@ -9,18 +9,16 @@ public class GameManager : MonoBehaviour
     public float yBorder { get; private set; }
     public float xBorder { get; private set; }
     public int currentLevelNumber { get; private set; }
-    public long gameScore { get; private set; }
-    public long highScore { get; private set; }
     public int playerLives { get; private set; }
 
     public Transform livesPanel;
     public GameObject healthPrefab;
     public TMP_Text statusText;
-    public TMP_Text gameScoreText;
-    public TMP_Text highScoreText;
 
-    private Camera _mainCamera;
     private GlobalObjectsManager _objectsManager;
+    private MenuNavigationManager _navigationManager;
+    private ScoreManager _scoreManager;
+    private Camera _mainCamera;
     private bool _isGameStarted;
     private float _pauseCounter;
     private float _respawnTimer;
@@ -43,6 +41,8 @@ public class GameManager : MonoBehaviour
     {
         _mainCamera = Camera.main;
         _objectsManager = GlobalObjectsManager.singleton;
+        _navigationManager = MenuNavigationManager.singleton;
+        _scoreManager = ScoreManager.singleton;
 
         currentLevelNumber = 0;
         _isGameStarted = false;
@@ -97,7 +97,8 @@ public class GameManager : MonoBehaviour
                 _endGameTimer += Time.deltaTime;
                 if (_endGameTimer > 3f)
                 {
-                    ShowGameOverScreen();
+                    _endGameTimer = 0f;
+                    OnGameOver();
                 }
             }
         }
@@ -107,7 +108,7 @@ public class GameManager : MonoBehaviour
     {
         GameObject playerGO = Instantiate(_objectsManager.playerPrebaf);
         _playerEntity = playerGO.GetComponent<PlayerEntity>();
-        _playerEntity.StartedOnLevel();
+        _playerEntity.StartedOnLevel(1.5f);
         _playerStatus = PlayerStatus.Alive;
     }
 
@@ -138,10 +139,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void ShowGameOverScreen()
+    private void OnGameOver()
     {
         EndGame();
         statusText.text = "";
+        statusText.gameObject.SetActive(false);
+
+        _scoreManager.CheckForHighscore();
+
+        if (_scoreManager.IsTopCurrentScore())
+        {
+            _navigationManager.NavigatePanel("ScoreInput");
+        }
+        else
+        {
+            _navigationManager.NavigatePanel("MainMenu");
+        }
     }
 
     private void UpdateGameBorders()
@@ -155,7 +168,7 @@ public class GameManager : MonoBehaviour
     {
         EndGame();
 
-        ResetPlayerScore();
+        _scoreManager.ResetPlayerScore();
         _isGameStarted = true;
         _playerStatus = PlayerStatus.NotSpawned;
         currentLevelNumber = 0;
@@ -175,14 +188,7 @@ public class GameManager : MonoBehaviour
 
     public void UpdatePlayerScore(int points)
     {
-        gameScore += points;
-        gameScoreText.text = gameScore.ToString();
-    }
-
-    public void ResetPlayerScore()
-    {
-        gameScore = 0;
-        gameScoreText.text = "00";
+        _scoreManager.UpdatePlayerScore(points);
     }
 
     private void UpdateHealthBar()
@@ -213,7 +219,7 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < asteroidsAmount; i++)
         {
-            int number = UnityEngine.Random.Range(0, _objectsManager.asteroidsPrefabs.Length - 1);
+            int number = Random.Range(0, _objectsManager.asteroidsPrefabs.Length - 1);
             GameObject childAsteroidGO = Instantiate(_objectsManager.asteroidsPrefabs[number]);
             var asteroidEntity = childAsteroidGO.GetComponent<AsteroidEntity>();
             asteroidEntity.levelNumber = levelNumber;
@@ -221,6 +227,11 @@ public class GameManager : MonoBehaviour
             asteroidEntity.SetupMovement(rules.direction, rules.speed);
             asteroidEntity.asteroidForm = rules.form;
             asteroidEntity.transform.position = new Vector3(Random.Range(-xBorder, xBorder), Random.Range(-yBorder, yBorder), 0);*/
+        }
+
+        if (_playerEntity != null)
+        {
+            _playerEntity.StartedOnLevel(1f);
         }
     }
 

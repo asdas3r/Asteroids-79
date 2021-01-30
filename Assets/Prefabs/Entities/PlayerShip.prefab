@@ -46,7 +46,6 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -160,7 +159,6 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -312,9 +310,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56554ccf32228c64597f9c8cf32a12c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deathPrefab: {fileID: 8670185668573409810, guid: d5f9e12f7f3d8f449a0600371a75d991, type: 3}
+  deathPrefab: {fileID: 8670185668573409810, guid: d5f9e12f7f3d8f449a0600371a75d991,
+    type: 3}
   bulletOffset: 1
   movers: {fileID: 8856730392811810617}
+  shipRenderer: {fileID: 8819273986582911173}
+  spawnProtectionColor: {r: 0.3584906, g: 0.3584906, b: 0.3584906, a: 1}
 --- !u!1 &8819273986582911179
 GameObject:
   m_ObjectHideFlags: 0
@@ -361,7 +362,6 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:

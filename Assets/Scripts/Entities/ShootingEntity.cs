@@ -4,7 +4,7 @@ public class ShootingEntity : BaseGameEntity
 {
     public float bulletOffset = 0.5f;
 
-    public void Shoot()
+    public virtual void Shoot()
     {
         var bulletPoint = transform.rotation * new Vector3(0, bulletOffset, 0);
         GameObject bulletGO = Instantiate(objectsManager.bulletPrefab, transform.position + bulletPoint, transform.rotation);

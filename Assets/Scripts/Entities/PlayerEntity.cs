@@ -3,11 +3,14 @@
 public class PlayerEntity : ShootingEntity
 {
     public GameObject movers;
+    public SpriteRenderer shipRenderer;
+    public Color spawnProtectionColor;
 
     private float spawnProtectionTime = 1f;
     private bool _isSpawnProtectionActive;
     private float _spawnProtectionTimeLeft;
     private string _currentAnimation;
+    private Color _defaultShipColor = Color.white;
 
     protected override void OnStart()
     {
@@ -35,7 +38,18 @@ public class PlayerEntity : ShootingEntity
     {
         _isSpawnProtectionActive = false;
         _spawnProtectionTimeLeft = spawnProtectionTime;
+        shipRenderer.color = _defaultShipColor; 
         gameObject.layer = 0;
+    }
+
+    public override void Shoot()
+    {
+        base.Shoot();
+
+        if (_isSpawnProtectionActive)
+        {
+            DisableSpawnProtection();
+        }
     }
 
     protected override void Death()
@@ -47,10 +61,11 @@ public class PlayerEntity : ShootingEntity
         gameManager.PlayerDied();
     }
 
-    public void StartedOnLevel()
+    public void StartedOnLevel(float protectionTime)
     {
-        spawnProtectionTime = 1.5f; 
         _isSpawnProtectionActive = true;
+        shipRenderer.color = spawnProtectionColor;
+        spawnProtectionTime = protectionTime; 
         gameObject.layer = 8;
     }
 
